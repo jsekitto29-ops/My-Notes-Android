@@ -28,27 +28,27 @@ jobs:
           ZIP_FILE=$(find . -maxdepth 1 -type f -iname '*.zip' | head -n 1)
 
           if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: No project ZIP found in repository root."
-            echo "Upload your project ZIP to the main repository page."
+            echo "ERROR: Upload your project ZIP to the repository main page."
             exit 1
           fi
 
-          echo "Extracting: $ZIP_FILE"
+          mkdir -p extracted
           unzip -o "$ZIP_FILE" -d extracted
 
           PROJECT_DIR=$(find extracted -type f -path '*/app/build.gradle' -print -quit | sed 's|/app/build.gradle||')
 
           if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: app/build.gradle was not found in the ZIP."
+            echo "ERROR: app/build.gradle not found inside the ZIP."
             exit 1
           fi
 
           cp -a "$PROJECT_DIR"/. .
+
           test -f app/build.gradle
           test -f settings.gradle
           test -f build.gradle
 
-      - name: Repair Gradle and color resources
+      - name: Repair project resources
         shell: bash
         run: |
           set -e
@@ -63,6 +63,7 @@ jobs:
 
           colors = Path("app/src/main/res/values/colors.xml")
           colors.parent.mkdir(parents=True, exist_ok=True)
+
           colors.write_text("""<?xml version="1.0" encoding="utf-8"?>
           <resources>
               <color name="purple_200">#FFBB86FC</color>
@@ -74,7 +75,6 @@ jobs:
               <color name="white">#FFFFFFFF</color>
           </resources>
           """)
-          print("Gradle and colors.xml checked.")
           PY
 
       - name: Set up Java 17
